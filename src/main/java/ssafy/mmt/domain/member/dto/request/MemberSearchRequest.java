@@ -7,4 +7,7 @@ import lombok.Setter;
 @Setter
 public class MemberSearchRequest {
     private String username;
+    private String password;
+    private String nickname;
+    private String email;
 }
