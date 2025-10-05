@@ -2,6 +2,9 @@ package ssafy.mmt.domain.member.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,7 +18,7 @@ import java.nio.file.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberService implements UserDetailsService {
 
 //    // @RequiredArgsConstructor 이 붙어서 아래 의존성 주입 코드는 생략해도 됨 -> private final 저렇게만 써도 됨 어노테이션 있어서
 //    public MemberService(MemberRepository memberRepository) {
@@ -59,6 +62,21 @@ public class MemberService {
 
 
     // [API]  자체 로그인 =====
+    // return 된 후 자체 로그인 처리로직 수행하기 위해 아래는 사용자의 요청에서 파싱한 username 과 password 를 기반으로 DB 로부터 조회하는 메서드
+    @Transactional(readOnly = true)
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(username, false, false)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+
+        return User.builder() // User 라는 걸 import 한 거임
+                .username(member.getUsername())
+                .password(member.getPassword())
+                .roles(member.getRoleType().name())
+                .accountLocked(member.getIsLock())
+                .build();
+    }
 
     // [API]  자체 로그인 회원 정보 수정 =====
     @Transactional(readOnly = true)
