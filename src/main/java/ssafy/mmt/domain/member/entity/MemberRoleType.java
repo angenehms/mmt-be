@@ -1,5 +1,5 @@
 package ssafy.mmt.domain.member.entity;
 
-public enum UserRoleType {
+public enum MemberRoleType {
     USER, ADMIN
 }

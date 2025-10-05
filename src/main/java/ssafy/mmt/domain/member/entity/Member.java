@@ -22,7 +22,7 @@ public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long memberId;
 
     @Column(name = "username", unique = true, nullable = false, updatable = false)
     private String username;
@@ -42,8 +42,8 @@ public class Member {
     private SocialProviderType socialProviderType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role_type", nullable = false)
-    private UserRoleType roleType;
+    @Column(name = "member_role_type", nullable = false)
+    private MemberRoleType roleType;
 
     @Column(name = "nickname")
     private String nickname;
