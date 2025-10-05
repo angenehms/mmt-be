@@ -25,7 +25,7 @@ public class MemberService {
     // [API]  자체 로그인 회원 가입 (존재 여부) =====
     @Transactional(readOnly = true)
     public Boolean isMemberExist(MemberSearchRequest msr) {
-        return memberRepository.isExistByUsername(msr.getUsername());
+        return memberRepository.existsByUsername(msr.getUsername());
     }
 
     // [API]  자체 로그인 회원 가입 =====
@@ -36,7 +36,7 @@ public class MemberService {
         // 회원 존재 여부 검증
         // 프론트에서 검증 한 번 했을텐데 왜 또 할까?
         // -> 프론트를 통해서가 아니라 포스트맨이나 기타 다른 곳에서 백엔드에 직접 쏠 수 있는 경우가 있기에 백엔드에서도 검증로직을 삽입해두는 게 좋음
-        if (memberRepository.isExistByUsername(msr.getUsername())) {
+        if (memberRepository.existsByUsername(msr.getUsername())) {
             throw new IllegalArgumentException("이미 유저가 존재합니다.");
         }
 
