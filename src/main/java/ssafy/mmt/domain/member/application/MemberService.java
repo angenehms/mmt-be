@@ -1,6 +1,8 @@
 package ssafy.mmt.domain.member.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +10,8 @@ import ssafy.mmt.domain.member.dto.request.MemberSearchRequest;
 import ssafy.mmt.domain.member.entity.Member;
 import ssafy.mmt.domain.member.entity.MemberRoleType;
 import ssafy.mmt.domain.member.repository.MemberRepository;
+
+import java.nio.file.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +61,25 @@ public class MemberService {
     // [API]  자체 로그인 =====
 
     // [API]  자체 로그인 회원 정보 수정 =====
+    @Transactional(readOnly = true)
+    public Long updateMember(MemberSearchRequest msr) throws AccessDeniedException {
+
+        // 본인만 수정 가능 검증
+        // 현재 스레드에 들고 있는 username 을 들고와 그 값이 msr 의 username 과 동일한지 판단
+        String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!sessionUsername.equals(msr.getUsername())) {
+            throw new AccessDeniedException("본인 계정만 수정 가능합니다!");
+        }
+
+        // 조회
+        Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(msr.getUsername(), false, false)
+                .orElseThrow(() -> new UsernameNotFoundException(msr.getUsername()));
+
+        // 회원 정보 수정
+        member.updateMember(msr);
+
+        return memberRepository.save(member).getMemberId();
+    }
 
     // [API]  자체/소셜 로그인 회원 탈퇴 =====
 
