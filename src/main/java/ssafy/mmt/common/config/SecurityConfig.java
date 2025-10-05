@@ -3,6 +3,9 @@ package ssafy.mmt.common.config;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,10 +13,24 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import ssafy.mmt.common.filter.LoginFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
+
+    // 커스텀 자체 로그인 필터를 위한 AuthenticationManager Bean 수동 등록
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
     // 비밀번호 단방향(BCrypt) 암호화용 Bean
     @Bean
@@ -23,7 +40,7 @@ public class SecurityConfig {
 
     // SecurityFilterChain
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
 
         // CSRF 보안 필터 disable (커스텀 세팅) - stateless 한 서버에서 필요 없기에 꺼주고
         http
@@ -54,6 +71,11 @@ public class SecurityConfig {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN); // 403 응답 // 권한이 없는 경우
                         })
                 );
+
+        // 커스텀 필터 추가 ( addFilterBefore -> 어떤 특정 필터 앞, 즉 before 에 추가 )
+        // UsernamePasswordAuthenticationFilter.class 가 기준이 되는 필터고 그 앞에 LoginFilter 객체를 찍어서 배치함
+        http
+                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter.class);
 
         // 세션 필터 설정 (STATELESS) (커스텀 세팅) - stateless 한 설정 세팅
         http
