@@ -1,4 +1,4 @@
-package testApi;
+package ssafy.mmt.testApi;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
