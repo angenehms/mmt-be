@@ -1,4 +1,4 @@
-package ssafy.mmt.common.filter;
+package ssafy.mmt.common.auth.filter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
