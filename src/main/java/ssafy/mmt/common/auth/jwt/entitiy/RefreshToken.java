@@ -28,8 +28,8 @@ public class RefreshToken {
     @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name = "refresh_toekn", nullable = false, length = 512)
-    private String refreshToekn;
+    @Column(name = "refresh_token", nullable = false, length = 512)
+    private String refreshToken;
 
     @CreatedDate
     @Column(name = "created_date", updatable = false)
