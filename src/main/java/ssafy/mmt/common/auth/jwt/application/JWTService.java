@@ -44,7 +44,7 @@ public class JWTService {
 
     // 특정 유저 Refresh 토큰 모두 삭제 (탈퇴)
     @Transactional
-    public void removeRefreshTokenMemeber(String refreshToken) {
+    public void removeRefreshTokenMember(String refreshToken) {
         refreshTokenRepository.deleteByUsername(refreshToken);
     }
 }
