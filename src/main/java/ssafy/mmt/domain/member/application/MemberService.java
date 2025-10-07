@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ssafy.mmt.domain.member.dto.request.MemberSearchRequest;
+import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
 import ssafy.mmt.domain.member.entity.Member;
 import ssafy.mmt.domain.member.entity.MemberRoleType;
 import ssafy.mmt.domain.member.repository.MemberRepository;
@@ -31,30 +31,30 @@ public class MemberService implements UserDetailsService {
 
     // [API]  자체 로그인 회원 가입 (존재 여부) =====
     @Transactional(readOnly = true)
-    public Boolean isMemberExist(MemberSearchRequest msr) {
-        return memberRepository.existsByUsername(msr.getUsername());
+    public Boolean isMemberExist(MemberVaildRequest mvr) {
+        return memberRepository.existsByUsername(mvr.getUsername());
     }
 
     // [API]  자체 로그인 회원 가입 =====
     // 리턴 타입을 Long 으로 받은 이유는 리턴을 해당 member 의 아이디값으로 받기 위해 .. 다른 걸로 하고 싶으면 해도 됨
-    @Transactional(readOnly = true)
-    public Long createMember(MemberSearchRequest msr) {
+    @Transactional
+    public Long createMember(MemberVaildRequest mvr) {
 
         // 회원 존재 여부 검증
         // 프론트에서 검증 한 번 했을텐데 왜 또 할까?
         // -> 프론트를 통해서가 아니라 포스트맨이나 기타 다른 곳에서 백엔드에 직접 쏠 수 있는 경우가 있기에 백엔드에서도 검증로직을 삽입해두는 게 좋음
-        if (memberRepository.existsByUsername(msr.getUsername())) {
+        if (memberRepository.existsByUsername(mvr.getUsername())) {
             throw new IllegalArgumentException("이미 유저가 존재합니다.");
         }
 
         Member member = Member.builder()
-                .username(msr.getUsername())
-                .password(passwordEncoder.encode(msr.getPassword()))
+                .username(mvr.getUsername())
+                .password(passwordEncoder.encode(mvr.getPassword()))
                 .isLock(false)
                 .isSocial(false)
                 .roleType(MemberRoleType.USER) // 우선 일반 유저로 가입
-                .nickname(msr.getNickname())
-                .email(msr.getEmail())
+                .nickname(mvr.getNickname())
+                .email(mvr.getEmail())
                 .build();
 
         return memberRepository.save(member).getMemberId();
@@ -80,21 +80,21 @@ public class MemberService implements UserDetailsService {
 
     // [API]  자체 로그인 회원 정보 수정 =====
     @Transactional(readOnly = true)
-    public Long updateMember(MemberSearchRequest msr) throws AccessDeniedException {
+    public Long updateMember(MemberVaildRequest mvr) throws AccessDeniedException {
 
         // 본인만 수정 가능 검증
         // 현재 스레드에 들고 있는 username 을 들고와 그 값이 msr 의 username 과 동일한지 판단
         String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!sessionUsername.equals(msr.getUsername())) {
+        if (!sessionUsername.equals(mvr.getUsername())) {
             throw new AccessDeniedException("본인 계정만 수정 가능합니다!");
         }
 
         // 조회
-        Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(msr.getUsername(), false, false)
-                .orElseThrow(() -> new UsernameNotFoundException(msr.getUsername()));
+        Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(mvr.getUsername(), false, false)
+                .orElseThrow(() -> new UsernameNotFoundException(mvr.getUsername()));
 
         // 회원 정보 수정
-        member.updateMember(msr);
+        member.updateMember(mvr);
 
         return memberRepository.save(member).getMemberId();
     }

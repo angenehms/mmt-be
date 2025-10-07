@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import ssafy.mmt.domain.member.dto.request.MemberSearchRequest;
+import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
 
 import java.time.LocalDateTime;
 
@@ -60,9 +60,9 @@ public class Member {
     @Column(name = "updated_date")
     private LocalDateTime updatedDate;
 
-    public void updateMember(MemberSearchRequest msr) {
-        this.email = msr.getEmail();
-        this.nickname = msr.getNickname();
+    public void updateMember(MemberVaildRequest mvr) {
+        this.email = mvr.getEmail();
+        this.nickname = mvr.getNickname();
     }
 
 }
