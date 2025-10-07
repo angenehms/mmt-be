@@ -1,6 +1,7 @@
 package ssafy.mmt.common.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ssafy.mmt.common.auth.filter.LoginFilter;
 
@@ -21,9 +23,13 @@ import ssafy.mmt.common.auth.filter.LoginFilter;
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final AuthenticationSuccessHandler loginSuccessHandler;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+    public SecurityConfig(
+            AuthenticationConfiguration authenticationConfiguration,
+            @Qualifier("LoginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler) { // Qualifier 로 확실히 구분해 의존성 주입받기
         this.authenticationConfiguration = authenticationConfiguration;
+        this.loginSuccessHandler = loginSuccessHandler;
     }
 
     // 커스텀 자체 로그인 필터를 위한 AuthenticationManager Bean 수동 등록
@@ -75,7 +81,7 @@ public class SecurityConfig {
         // 커스텀 필터 추가 ( addFilterBefore -> 어떤 특정 필터 앞, 즉 before 에 추가 )
         // UsernamePasswordAuthenticationFilter.class 가 기준이 되는 필터고 그 앞에 LoginFilter 객체를 찍어서 배치함
         http
-                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class);
 
         // 세션 필터 설정 (STATELESS) (커스텀 세팅) - stateless 한 설정 세팅
         http

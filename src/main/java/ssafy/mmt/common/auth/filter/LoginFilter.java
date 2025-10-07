@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StreamUtils;
@@ -38,8 +39,11 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
     private String passwordParameter = SPRING_SECURITY_FORM_PASSWORD_KEY;
 
-    public LoginFilter(AuthenticationManager authenticationManager) {
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
+
+    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
     }
 
     // AbstractAuthenticationProcessingFilter 를 상속받았기에 그 내부의 메서드를 오버라이딩
@@ -78,6 +82,12 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
     protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken authRequest) {
         authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
+    }
+
+    @Override // 로그인이 되면 어떤걸 수행할지 물어보는 메서드
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+                                            Authentication authResult) throws IOException, ServletException {
+        authenticationSuccessHandler.onAuthenticationSuccess(request, response, authResult);
     }
 
 }
