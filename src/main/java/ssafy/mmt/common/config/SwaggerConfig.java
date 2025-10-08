@@ -1,7 +1,9 @@
 package ssafy.mmt.common.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +28,16 @@ public class SwaggerConfig {
                         new Server()
                                 .url("http://localhost:8080")
                                 .description("개발용 서버")
-                ));
+                ))
+                .components(new Components() // 스웨거와 시큐리티 설정 관련
+                        .addSecuritySchemes("JWT", new SecurityScheme() // "JWT" 라는 별명으로 각각의 api 엔드포인트에 명시하면 이 명세 스키마가 그대로 적용된다.
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .in(SecurityScheme.In.HEADER)
+                                .name("Authorization")
+                        )
+                );
     }
 
     // 엔드포인트 버젼별 대그룹화 (스웨거 페이지 우측 상단 위치)

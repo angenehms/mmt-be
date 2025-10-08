@@ -1,5 +1,7 @@
 package ssafy.mmt.testApi;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import java.util.Map;
 public class testController1 {
 
     @GetMapping("/content1/{id}")
+    @Operation(security = @SecurityRequirement(name = "JWT"))
     public ResponseEntity<?> contentGet(
             @PathVariable("id")Long id
     ){
@@ -45,6 +48,7 @@ public class testController1 {
 //    }
 
     @DeleteMapping("/content1/{id}")
+    @Operation(security = @SecurityRequirement(name = "JWT"))
     public ResponseEntity<?> contentDelete(
             @PathVariable("id") Long id
     ) {
