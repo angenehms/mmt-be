@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ssafy.mmt.common.auth.filter.LoginFilter;
+import ssafy.mmt.common.auth.handler.RefreshTokenLogoutHandler;
+import ssafy.mmt.common.auth.jwt.application.JWTService;
 
 @Configuration
 @EnableWebSecurity
@@ -24,12 +26,14 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final AuthenticationSuccessHandler loginSuccessHandler;
+    private final JWTService jwtService;
 
     public SecurityConfig(
             AuthenticationConfiguration authenticationConfiguration,
-            @Qualifier("LoginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler) { // Qualifier 로 확실히 구분해 의존성 주입받기
+            @Qualifier("LoginSuccessHandler") AuthenticationSuccessHandler loginSuccessHandler, JWTService jwtService) { // Qualifier 로 확실히 구분해 의존성 주입받기
         this.authenticationConfiguration = authenticationConfiguration;
         this.loginSuccessHandler = loginSuccessHandler;
+        this.jwtService = jwtService;
     }
 
     // 커스텀 자체 로그인 필터를 위한 AuthenticationManager Bean 수동 등록
@@ -53,6 +57,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 
         // CORS 설정 (커스텀 세팅) - 리액트, 스프링과 같이 프론트, 백에 서로 다른 오리진을 가지는 경우에는 CORS 설정이 필수
+
+        // 기본 로그아웃 필터 + 커스텀 Refresh 토큰 삭제 핸들러 추가
+        http
+                .logout(logout -> logout
+                        .addLogoutHandler(new RefreshTokenLogoutHandler(jwtService)));
 
         // 기본 Form 기반 인증 필터들 disable (커스텀 세팅) - multipart form 데이터 형태로 받지 않고 우리는 json body 기반으로 받을 거기 때문에
         http
