@@ -66,7 +66,7 @@ public class MemberController {
             @RequestBody MemberVaildRequest mvr
     ) throws AccessDeniedException {
 
-        memberService.updateMember(mvr);
+        memberService.deleteMember(mvr);
         return ResponseEntity.status(200).body(true);
     }
 }
