@@ -1,6 +1,7 @@
 package ssafy.mmt.domain.member.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ssafy.mmt.common.auth.jwt.application.JWTService;
 import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
+import ssafy.mmt.domain.member.dto.response.MemberInfoResponse;
 import ssafy.mmt.domain.member.entity.Member;
 import ssafy.mmt.domain.member.entity.MemberRoleType;
 import ssafy.mmt.domain.member.repository.MemberRepository;
@@ -28,6 +31,7 @@ public class MemberService implements UserDetailsService {
     // 의존성 주입
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTService jwtService; // 회원탈퇴 시 회원이 가진 토큰들을 모두 제거해야하기 위해 필요
 
     // [API]  자체 로그인 회원 가입 (존재 여부) =====
     @Transactional(readOnly = true)
@@ -100,9 +104,40 @@ public class MemberService implements UserDetailsService {
     }
 
     // [API]  자체/소셜 로그인 회원 탈퇴 =====
+    @Transactional
+    public void deleteMember(MemberVaildRequest mvr) throws AccessDeniedException {
+
+        // 본인 및 어드민만 삭제 가능 검증
+        SecurityContext context = SecurityContextHolder.getContext();
+        String sessionUsername = context.getAuthentication().getName();
+        String sessionRole = context.getAuthentication().getAuthorities().iterator().next().getAuthority();
+
+        boolean isOwner = sessionUsername.equals(mvr.getUsername());
+        boolean isAdmin = sessionRole.equals("ROLE_"+MemberRoleType.ADMIN.name());
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("본인 혹은 관리자만 삭제할 수 있습니다.");
+        }
+
+        // 유저 제거
+        memberRepository.deleteByUsername(mvr.getUsername());
+
+        // Refresh 토큰 제거
+        jwtService.removeRefreshTokenMember(mvr.getUsername());
+
+    }
 
     // [API]  소셜 로그인 (매 로그인시 : 신규 = 가입, 기존 = 업데이트) =====
 
     // [API]  자체/소셜 유저 정보 조회 =====
+    @Transactional(readOnly = true)
+    public MemberInfoResponse readMember() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Member member = memberRepository.findByUsernameAndIsLock(username, false)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 유저를 찾을 수 없습니다: " + username));
+
+        return new MemberInfoResponse(username, member.getIsSocial(), member.getNickname(), member.getEmail());
+    }
 
 }
