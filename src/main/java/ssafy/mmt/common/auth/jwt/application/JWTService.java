@@ -3,8 +3,11 @@ package ssafy.mmt.common.auth.jwt.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ssafy.mmt.common.auth.jwt.dto.request.RefreshRequestDTO;
+import ssafy.mmt.common.auth.jwt.dto.response.JWTResponseDTO;
 import ssafy.mmt.common.auth.jwt.entitiy.RefreshToken;
 import ssafy.mmt.common.auth.jwt.repository.RefreshTokenRepository;
+import ssafy.mmt.common.auth.util.JWTUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +19,36 @@ public class JWTService {
     // restful 하게 설계하게되면 쿠키형태로 발급받게 되고 헤더 형식으로 통합하기 위해서는 다시 백엔드로 보내 쿠키를 검증하고 헤더로 바꿔주는 과정이 필요함
 
     // Refresh 토큰으로 Access 토큰 재발급 로직 (Rotate 포함) <-- 이건 추후에 작성
+    @Transactional
+    public JWTResponseDTO refreshRotate(RefreshRequestDTO dto) {
+
+        String refreshToken = dto.getRefreshToken();
+
+        // Refresh 토큰 검증
+        Boolean isValid = JWTUtil.isValid(refreshToken, false);
+        if (!isValid) {
+            throw new RuntimeException("유효하지 않은 refreshToken입니다.");
+        }
+
+        // 정보 추출
+        String username = JWTUtil.getUsername(refreshToken);
+        String role = JWTUtil.getRole(refreshToken);
+
+        // 토큰 생성
+        String newAccessToken = JWTUtil.createJWT(username, role, true);
+        String newRefreshToken = JWTUtil.createJWT(username, role, false);
+
+        // 기존 Refresh 토큰 DB 삭제 후 신규 추가
+        RefreshToken newRefreshEntity = RefreshToken.builder()
+                .username(username)
+                .refreshToken(newRefreshToken)
+                .build();
+
+        removeRefreshToken(refreshToken);
+        refreshTokenRepository.save(newRefreshEntity);
+
+        return new JWTResponseDTO(newAccessToken, newRefreshToken);
+    }
 
     // JWT Refresh 토큰 발급 후 저장 메소드
     @Transactional
@@ -44,7 +77,7 @@ public class JWTService {
 
     // 특정 유저 Refresh 토큰 모두 삭제 (탈퇴)
     @Transactional
-    public void removeRefreshTokenMember(String refreshToken) {
-        refreshTokenRepository.deleteByUsername(refreshToken);
+    public void removeRefreshTokenMember(String username) {
+        refreshTokenRepository.deleteByUsername(username);
     }
 }
