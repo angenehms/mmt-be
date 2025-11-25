@@ -13,14 +13,19 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StreamUtils;
+import ssafy.mmt.common.auth.CustomMemberPrincipal;
+import ssafy.mmt.domain.member.entity.Member;
+import ssafy.mmt.domain.member.repository.MemberRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 // 아무런 어노테이션 안붙이고 extends 로 상속을 받음
@@ -40,10 +45,12 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
     private String passwordParameter = SPRING_SECURITY_FORM_PASSWORD_KEY;
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final MemberRepository memberRepository; //  memberId 조회용 서비스 추가
 
-    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler) {
+    public LoginFilter(AuthenticationManager authenticationManager, AuthenticationSuccessHandler authenticationSuccessHandler, MemberRepository memberRepository) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
         this.authenticationSuccessHandler = authenticationSuccessHandler;
+        this.memberRepository = memberRepository;
     }
 
     // AbstractAuthenticationProcessingFilter 를 상속받았기에 그 내부의 메서드를 오버라이딩
@@ -73,7 +80,19 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
         String password = loginMap.get(passwordParameter);
         password = (password != null) ? password : "";
 
-        UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username,
+        // memberId 조회
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new AuthenticationServiceException("User not found")); // username → memberId 변환
+
+        CustomMemberPrincipal principal = new CustomMemberPrincipal(
+                member.getMemberId(),
+                member.getUsername(),
+                member.getRoleType().name(),
+                member.getPassword(),
+                List.of(new SimpleGrantedAuthority(member.getRoleType().name()))
+        );
+
+        UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(principal,
                 password);
         setDetails(request, authRequest);
         // 획득한 username 과 password 를 AuthenticationManager 에게 전달

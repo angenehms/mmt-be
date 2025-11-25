@@ -33,10 +33,11 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // username, role
         String username =  authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
+        Long memberId = (Long) authentication.getPrincipal();
 
         // JWT(Access/Refresh) 발급
-        String accessToken = JWTUtil.createJWT(username, role, true);
-        String refreshToken = JWTUtil.createJWT(username, role, false);
+        String accessToken = JWTUtil.createJWT(username, role, memberId, true);
+        String refreshToken = JWTUtil.createJWT(username, role, memberId, false);
 
         // 발급한 Refresh DB 테이블 저장 (Refresh whitelist)
         // 따로 백엔드에 모아 관리할 것이기 때문

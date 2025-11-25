@@ -33,10 +33,11 @@ public class JWTService {
         // 정보 추출
         String username = JWTUtil.getUsername(refreshToken);
         String role = JWTUtil.getRole(refreshToken);
+        Long memberId = JWTUtil.getMemberId(refreshToken);
 
         // 토큰 생성
-        String newAccessToken = JWTUtil.createJWT(username, role, true);
-        String newRefreshToken = JWTUtil.createJWT(username, role, false);
+        String newAccessToken = JWTUtil.createJWT(username, role, memberId, true);
+        String newRefreshToken = JWTUtil.createJWT(username, role, memberId, false);
 
         // 기존 Refresh 토큰 DB 삭제 후 신규 추가
         RefreshToken newRefreshEntity = RefreshToken.builder()

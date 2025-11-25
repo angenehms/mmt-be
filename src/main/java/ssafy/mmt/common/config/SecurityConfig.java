@@ -28,6 +28,7 @@ import ssafy.mmt.common.auth.filter.LoginFilter;
 import ssafy.mmt.common.auth.handler.RefreshTokenLogoutHandler;
 import ssafy.mmt.common.auth.jwt.application.JWTService;
 import ssafy.mmt.domain.member.entity.MemberRoleType;
+import ssafy.mmt.domain.member.repository.MemberRepository;
 
 import java.util.List;
 
@@ -85,7 +86,7 @@ public class SecurityConfig {
 
     // SecurityFilterChain
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authenticationManagerBuilder, MemberRepository memberRepository) throws Exception {
 
         // CSRF 보안 필터 disable (커스텀 세팅) - stateless 한 서버에서 필요 없기에 꺼주고
         http
@@ -135,7 +136,13 @@ public class SecurityConfig {
 
         // 커스텀 필터 추가 ( addFilterBefore -> 어떤 특정 필터 앞, 즉 before 에 추가 )
         http // UsernamePasswordAuthenticationFilter.class 가 기준이 되는 필터고 그 앞에 LoginFilter 객체를 찍어서 배치함
-                .addFilterBefore(new LoginFilter(authenticationManager(authenticationConfiguration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        new LoginFilter(
+                                authenticationManager(authenticationConfiguration),
+                                loginSuccessHandler,
+                                memberRepository
+                        ),
+                        UsernamePasswordAuthenticationFilter.class);
 
         // 커스텀 필터 추가 ( addFilterBefore -> 어떤 특정 필터 앞, 즉 before 에 추가 )
         http // LogoutFilter 보다 앞에 등록

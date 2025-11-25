@@ -30,12 +30,31 @@ public class JWTUtil {
 
     // JWT 클레임 username 파싱 - 바디 내부의 username 파싱
     public static String getUsername(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("sub", String.class);
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("sub", String.class);
     }
 
     // JWT 클레임 role 파싱 - 바디 내부의 role 값 파싱
     public static String getRole(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+
+    public static Long getMemberId(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("memberId", Long.class);
     }
 
     // *** isValid 로 검증한 이후에는 내부 페이로드에 담긴 데이터 값 파싱 ***
@@ -64,7 +83,7 @@ public class JWTUtil {
 
     // JWT(Access/Refresh) 생성
     // isAccess 는 이 JWT 가 엑세스인지 리프레시 토큰인지 구분
-    public static String createJWT(String username, String role, Boolean isAccess) {
+    public static String createJWT(String username, String role, Long memberId, Boolean isAccess) {
 
         long now = System.currentTimeMillis(); // 현재 시각에
         long expiry = isAccess ? accessTokenExpiresIn : refreshTokenExpiresIn;
@@ -74,6 +93,7 @@ public class JWTUtil {
                 // 내부 페이로드 구성
                 .claim("sub", username)
                 .claim("role", role)
+                .claim("memberId", memberId) // 여기에 memberId 담음
                 .claim("type", type) // 엑세스인지, 리프레시인지
                 .issuedAt(new Date(now)) // JWT 발급시간
                 .expiration(new Date(now + expiry)) // JWT 생명주기
