@@ -17,10 +17,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ssafy.mmt.common.auth.filter.JWTFilter;
 import ssafy.mmt.common.auth.filter.LoginFilter;
 import ssafy.mmt.common.auth.handler.RefreshTokenLogoutHandler;
 import ssafy.mmt.common.auth.jwt.application.JWTService;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -50,6 +55,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // CORS Bean
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 허용 포트
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용 메서드
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization", "Set-Cookie")); // 받는 헤더 값
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     // SecurityFilterChain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
@@ -59,6 +80,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 
         // CORS 설정 (커스텀 세팅) - 리액트, 스프링과 같이 프론트, 백에 서로 다른 오리진을 가지는 경우에는 CORS 설정이 필수
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         // 기본 로그아웃 필터 + 커스텀 Refresh 토큰 삭제 핸들러 추가
         http
