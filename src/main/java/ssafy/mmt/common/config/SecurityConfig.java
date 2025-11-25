@@ -111,11 +111,14 @@ public class SecurityConfig {
         // 인가 (커스텀 세팅) - 컨트롤러 api 에 대해 접근을 허용할건지 말건지 결정
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/user/exist", "/user").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/user").hasRole(MemberRoleType.USER.name())
-                        .requestMatchers(HttpMethod.PUT, "/user").hasRole(MemberRoleType.USER.name())
-                        .requestMatchers(HttpMethod.DELETE, "/user").hasRole(MemberRoleType.USER.name())
+
+                        .requestMatchers(HttpMethod.POST, "/api/**/member/exist", "/api/**/member").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/**/member").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/**/member").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/**/member").hasRole(MemberRoleType.USER.name())
+
                         .anyRequest().authenticated()
                 );
 
