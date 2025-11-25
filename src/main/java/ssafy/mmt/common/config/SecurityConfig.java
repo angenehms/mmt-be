@@ -4,6 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -24,6 +27,7 @@ import ssafy.mmt.common.auth.filter.JWTFilter;
 import ssafy.mmt.common.auth.filter.LoginFilter;
 import ssafy.mmt.common.auth.handler.RefreshTokenLogoutHandler;
 import ssafy.mmt.common.auth.jwt.application.JWTService;
+import ssafy.mmt.domain.member.entity.MemberRoleType;
 
 import java.util.List;
 
@@ -47,6 +51,14 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    // 권한 계층 -> admin 계정이 높은 role 인지, user 계정이 높은 role 인지 계층을 구분해주는 Bean
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.withRolePrefix("ROLE_")
+                .role(MemberRoleType.ADMIN.name()).implies(MemberRoleType.USER.name())
+                .build();
     }
 
     // 비밀번호 단방향(BCrypt) 암호화용 Bean
@@ -99,7 +111,13 @@ public class SecurityConfig {
         // 인가 (커스텀 세팅) - 컨트롤러 api 에 대해 접근을 허용할건지 말건지 결정
         http
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll());
+                        .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/exist", "/user").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/user").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.PUT, "/user").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/user").hasRole(MemberRoleType.USER.name())
+                        .anyRequest().authenticated()
+                );
 
         // 예외 처리 (커스텀 세팅)
         http
