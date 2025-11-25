@@ -17,7 +17,7 @@ public class MemberVaildRequest {
     public interface updateGroup {} // 회원 수정시
     public interface deleteGroup {} // 회원 삭제시
 
-    @NotBlank(groups = {existGroup.class, addGroup.class, updateGroup.class, deleteGroup.class}) @Size(min = 4) // 빈값 안되고 최소 사이즈 4
+    @NotBlank(groups = {existGroup.class, addGroup.class, deleteGroup.class}) @Size(min = 4) // 빈값 안되고 최소 사이즈 4
     private String username;
     @NotBlank(groups = {addGroup.class, passwordGroup.class}) @Size(min = 4)
     private String password;
