@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.common.auth.jwt.application.JWTService;
 import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
 import ssafy.mmt.domain.member.dto.response.MemberInfoResponse;
@@ -84,18 +85,19 @@ public class MemberService implements UserDetailsService {
 
     // [API]  자체 로그인 회원 정보 수정 =====
     @Transactional(readOnly = true)
-    public Long updateMember(MemberVaildRequest mvr) throws AccessDeniedException {
+    public Long updateMember(MemberVaildRequest mvr, Long memberId) throws AccessDeniedException {
 
         // 본인만 수정 가능 검증
         // 현재 스레드에 들고 있는 username 을 들고와 그 값이 msr 의 username 과 동일한지 판단
         String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!sessionUsername.equals(mvr.getUsername())) {
-            throw new AccessDeniedException("본인 계정만 수정 가능합니다!");
+            throw new AccessDeniedException("계정 정보가 일치하지 않습니다!");
         }
 
-        // 조회
+        // DB 조회
         Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(mvr.getUsername(), false, false)
                 .orElseThrow(() -> new UsernameNotFoundException(mvr.getUsername()));
+        if(memberId != member.getMemberId()) throw new AccessDeniedException("계정 정보가 일치하지 않습니다!");
 
         // 회원 정보 수정
         member.updateMember(mvr);
@@ -105,7 +107,7 @@ public class MemberService implements UserDetailsService {
 
     // [API]  자체/소셜 로그인 회원 탈퇴 =====
     @Transactional
-    public void deleteMember(MemberVaildRequest mvr) throws AccessDeniedException {
+    public void deleteMember(MemberVaildRequest mvr, Long memberId) throws AccessDeniedException {
 
         // 본인 및 어드민만 삭제 가능 검증
         SecurityContext context = SecurityContextHolder.getContext();
@@ -119,8 +121,13 @@ public class MemberService implements UserDetailsService {
             throw new AccessDeniedException("본인 혹은 관리자만 삭제할 수 있습니다.");
         }
 
+        // DB 조회
+        Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(mvr.getUsername(), false, false)
+                .orElseThrow(() -> new UsernameNotFoundException(mvr.getUsername()));
+        if(memberId != member.getMemberId()) throw new AccessDeniedException("계정 정보가 일치하지 않습니다!");
+
         // 유저 제거
-        memberRepository.deleteByUsername(mvr.getUsername());
+        memberRepository.deleteById((memberId));
 
         // Refresh 토큰 제거
         jwtService.removeRefreshTokenMember(mvr.getUsername());
@@ -131,11 +138,12 @@ public class MemberService implements UserDetailsService {
 
     // [API]  자체/소셜 유저 정보 조회 =====
     @Transactional(readOnly = true)
-    public MemberInfoResponse readMember() {
+    public MemberInfoResponse readMember(Long memberId) throws AccessDeniedException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Member member = memberRepository.findByUsernameAndIsLock(username, false)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 유저를 찾을 수 없습니다: " + username));
+        if(memberId != member.getMemberId()) throw new AccessDeniedException("계정 정보가 일치하지 않습니다!");
 
         return new MemberInfoResponse(username, member.getIsSocial(), member.getNickname(), member.getEmail());
     }

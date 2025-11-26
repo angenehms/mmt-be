@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.domain.member.application.MemberService;
 import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
 import ssafy.mmt.domain.member.dto.response.MemberInfoResponse;
@@ -52,30 +53,34 @@ public class MemberController {
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(security = {@SecurityRequirement(name = "JWT")})
     public MemberInfoResponse userMeApi(
-            @AuthenticationPrincipal Member member
-    ) {
-        return memberService.readMember();
+            @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal
+    ) throws AccessDeniedException {
+        Long memberId = customMemberPrincipal.getMemberId();
+        return memberService.readMember(memberId);
     }
 
     // 유저 수정 (자체 로그인 유저만)
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<Long> updateUserApi(
+            @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal,
             @Validated(MemberVaildRequest.updateGroup.class)
             @RequestBody MemberVaildRequest mvr
     ) throws AccessDeniedException {
-        return ResponseEntity.status(200).body(memberService.updateMember(mvr));
+        Long memberId = customMemberPrincipal.getMemberId();
+        return ResponseEntity.status(200).body(memberService.updateMember(mvr, memberId));
     }
 
     // 유저 제거 (자체/소셜)
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<Boolean> deleteUserApi(
+            @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal,
             @Validated(MemberVaildRequest.deleteGroup.class)
             @RequestBody MemberVaildRequest mvr
     ) throws AccessDeniedException {
-
-        memberService.deleteMember(mvr);
+        Long memberId = customMemberPrincipal.getMemberId();
+        memberService.deleteMember(mvr, memberId);
         return ResponseEntity.status(200).body(true);
     }
 }

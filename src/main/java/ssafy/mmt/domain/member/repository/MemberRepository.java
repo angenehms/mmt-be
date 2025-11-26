@@ -15,10 +15,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByUsernameAndIsLockAndIsSocial(String username, Boolean isLock, Boolean isSocial);
 
     Optional<Member> findByUsernameAndIsLock(String username, Boolean isLock);
-
-    @Transactional
-    void deleteByUsername(String username);
-
     Optional<Member> findByUsername(String username);
+
 }
 
