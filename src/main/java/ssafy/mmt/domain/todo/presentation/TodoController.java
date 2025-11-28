@@ -6,13 +6,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.domain.todo.application.TodoService;
 import ssafy.mmt.domain.todo.dto.request.TodoCreateRequest;
+import ssafy.mmt.domain.todo.dto.response.TodoSearchResponse;
+import ssafy.mmt.domain.todo.entity.Todo;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +34,16 @@ public class TodoController {
     ) {
         todoService.addTodo(tcr, customMemberPrincipal);
         return ResponseEntity.status(200).body(true);
+    }
+
+    // 할일 불러오기
+    @GetMapping
+    @Operation(summary = "할일 조회", description = "할일을 불러옵니다.")
+    public ResponseEntity<List<TodoSearchResponse>> getTodo(
+            @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal
+    ) {
+        List<TodoSearchResponse> todoList = todoService.getTodo(customMemberPrincipal);
+        return ResponseEntity.status(200).body(todoList);
     }
 
 }

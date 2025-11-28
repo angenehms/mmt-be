@@ -5,8 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.domain.todo.dto.request.TodoCreateRequest;
+import ssafy.mmt.domain.todo.dto.response.TodoSearchResponse;
 import ssafy.mmt.domain.todo.entity.Todo;
 import ssafy.mmt.domain.todo.repository.TodoRepository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,5 +32,26 @@ public class TodoService {
         todoRepository.save(newTodo);
     }
 
+    @Transactional
+    public List<TodoSearchResponse> getTodo(
+            CustomMemberPrincipal customMemberPrincipal
+    ) {
+        Long memberId = customMemberPrincipal.getMemberId();
+
+        List<Todo> rawList = todoRepository.findByMemberId((memberId));
+        List<TodoSearchResponse> formattedList = new ArrayList<>();
+
+        for(Todo curr : rawList) {
+            formattedList.add(
+                    new TodoSearchResponse(
+                            curr.getTodoId(),
+                            curr.getContent(),
+                            curr.getIsDone()
+                    )
+            );
+        }
+
+        return formattedList;
+    }
 
 }
