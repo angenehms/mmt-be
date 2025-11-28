@@ -12,7 +12,6 @@ import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.domain.member.application.MemberService;
 import ssafy.mmt.domain.member.dto.request.MemberVaildRequest;
 import ssafy.mmt.domain.member.dto.response.MemberInfoResponse;
-import ssafy.mmt.domain.member.entity.Member;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Collections;
