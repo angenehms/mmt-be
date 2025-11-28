@@ -115,10 +115,10 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/**/member/exist", "/api/**/member").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/**/member").hasRole(MemberRoleType.USER.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/**/member").hasRole(MemberRoleType.USER.name())
-                        .requestMatchers(HttpMethod.DELETE, "/api/**/member").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/*/member/exist", "/api/*/member").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/*/member").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/*/member").hasRole(MemberRoleType.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/*/member").hasRole(MemberRoleType.USER.name())
 
                         .anyRequest().authenticated()
                 );
