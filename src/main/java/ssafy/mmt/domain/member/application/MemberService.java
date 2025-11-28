@@ -75,12 +75,22 @@ public class MemberService implements UserDetailsService {
         Member member = memberRepository.findByUsernameAndIsLockAndIsSocial(username, false, false)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
 
-        return User.builder() // User 라는 걸 import 한 거임
-                .username(member.getUsername())
-                .password(member.getPassword())
-                .roles(member.getRoleType().name())
-                .accountLocked(member.getIsLock())
-                .build();
+//        return User.builder() // User 라는 걸 import 한 거임
+//                .username(member.getUsername())
+//                .password(member.getPassword())
+//                .roles(member.getRoleType().name())
+//                .accountLocked(member.getIsLock())
+//                .build();
+
+        // 🌟🌟🌟 이 부분을 CustomMemberPrincipal 로 변경합니다 🌟🌟🌟
+        return new CustomMemberPrincipal(
+                member.getMemberId(), // 1. memberId 추가
+                member.getUsername(),
+                member.getRoleType().name(), // 2. RoleType 문자열로 변경
+                member.getPassword(),
+                // 3. 권한 목록 생성 (단일 역할이라면 이렇게, 여러 개라면 별도 로직 필요)
+                java.util.Collections.singleton(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + member.getRoleType().name()))
+        );
     }
 
     // [API]  자체 로그인 회원 정보 수정 =====

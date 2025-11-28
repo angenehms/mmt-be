@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.common.auth.jwt.application.JWTService;
 import ssafy.mmt.common.auth.util.JWTUtil;
 
@@ -33,7 +34,18 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // username, role
         String username =  authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
-        Long memberId = (Long) authentication.getPrincipal();
+
+
+        // ⚠️ 에러가 났던 지점: class org.springframework.security.core.userdetails.User cannot be cast to class java.lang.Long
+        // Long memberId = (Long) authentication.getPrincipal(); // 기존 코드 (에러 발생)
+
+        // 🌟 수정된 코드
+        Object principal = authentication.getPrincipal();
+        Long memberId = null;
+
+        if (principal instanceof CustomMemberPrincipal customPrincipal) {
+            memberId = customPrincipal.getMemberId(); // CustomPrincipal에서 Long 타입 ID를 안전하게 추출
+        }
 
         // JWT(Access/Refresh) 발급
         String accessToken = JWTUtil.createJWT(username, role, memberId, true);
