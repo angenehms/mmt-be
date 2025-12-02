@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ssafy.mmt.common.auth.CustomMemberPrincipal;
 import ssafy.mmt.domain.todo.dto.request.TodoCreateRequest;
+import ssafy.mmt.domain.todo.dto.request.TodoUpdateRequest;
 import ssafy.mmt.domain.todo.dto.response.TodoSearchResponse;
 import ssafy.mmt.domain.todo.entity.Todo;
 import ssafy.mmt.domain.todo.repository.TodoRepository;
@@ -52,6 +53,31 @@ public class TodoService {
         }
 
         return formattedList;
+    }
+
+    @Transactional
+    public void deleteTodo(
+            CustomMemberPrincipal customMemberPrincipal,
+            Long todoId
+    ) {
+        Long memberId = customMemberPrincipal.getMemberId();
+        todoRepository.deleteTodoByMemberIdAndTodoId(memberId, todoId);
+    }
+
+    @Transactional
+    public void updateTodo(
+            TodoUpdateRequest tur,
+            CustomMemberPrincipal customMemberPrincipal,
+            Long todoId
+    ) {
+        Long memberId = customMemberPrincipal.getMemberId();
+        Todo todo = todoRepository.findByMemberIdAndTodoId(memberId, todoId);
+
+        todo.setContent(tur.content());
+        todo.setIsDone(tur.isDone());
+
+        todoRepository.save(todo);
+
     }
 
 }

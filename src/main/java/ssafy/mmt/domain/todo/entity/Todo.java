@@ -2,10 +2,7 @@ package ssafy.mmt.domain.todo.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class) // 수정일 생성일 자동 반영을 위함
 @Table(name = "todos")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor // 아무것도 없는 생성자
 @AllArgsConstructor // 모든 것이 다 있는 생성자
