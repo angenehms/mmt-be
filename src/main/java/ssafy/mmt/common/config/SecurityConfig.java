@@ -114,6 +114,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/jwt/exchange", "/jwt/refresh").permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // 모니터링용 엔드포인트 허용
 
                         .requestMatchers(HttpMethod.POST, "/api/*/member/exist", "/api/*/member").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/*/member").hasRole(MemberRoleType.USER.name())
