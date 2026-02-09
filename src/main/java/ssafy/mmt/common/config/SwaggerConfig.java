@@ -25,9 +25,14 @@ public class SwaggerConfig {
                         .version("1.0")
                 )
                 .servers(List.of(
+                        // 1. 현재 접속한 도메인을 자동으로 따라가도록 설정 (배포 환경 대응)
+                        new Server()
+                                .url("/")
+                                .description("현재 접속한 서버 (자동 인식)"),
+                        // 2. 로컬에서 직접 테스트할 때 사용할 주소
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("개발용 서버")
+                                .description("로컬 개발용 서버")
                 ))
                 .components(new Components()
                         .addSecuritySchemes("JWT", new SecurityScheme()
@@ -36,15 +41,15 @@ public class SwaggerConfig {
                                 .bearerFormat("JWT")
                                 .in(SecurityScheme.In.HEADER)
                                 .name("Authorization")
-                ));
+                        ));
     }
 
-    // 엔드포인트 버젼별 대그룹화 (스웨거 페이지 우측 상단 위치)
+    // 엔드포인트 버전별 대그룹화
     @Bean
     public GroupedOpenApi groupedOpenApiV1() {
         return GroupedOpenApi.builder()
                 .group("v1")
-                .pathsToMatch("/api/v1/**") // 해당 경로로 작성된 엔드포인트들을 v1 그룹에 그룹화
+                .pathsToMatch("/api/v1/**")
                 .build();
     }
 
@@ -55,5 +60,4 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/v2/**")
                 .build();
     }
-
 }
