@@ -1,6 +1,7 @@
 package ssafy.mmt.domain.todo.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ssafy.mmt.common.auth.CustomMemberPrincipal;
@@ -35,6 +36,7 @@ public class TodoService {
     }
 
     @Transactional
+    @Cacheable(cacheNames = "getTodo", key = "'todo:memberId:' + #customMemberPrincipal.getMemberId()", cacheManager = "todoCacheManager")
     public List<TodoSearchResponse> getTodo(
             CustomMemberPrincipal customMemberPrincipal
     ) {
