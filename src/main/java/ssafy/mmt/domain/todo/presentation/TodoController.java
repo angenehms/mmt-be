@@ -2,6 +2,7 @@ package ssafy.mmt.domain.todo.presentation;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class TodoController {
 
     // [api] 할일 추가
     @PostMapping
-    @Operation(summary = "할일 추가", description = "할일을 추가합니다.")
+    @Operation(summary = "할일 추가", description = "할일을 추가합니다.", security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<Boolean> addTodo(
             @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal,
             @RequestBody TodoCreateRequest tcr
@@ -39,7 +40,7 @@ public class TodoController {
 
     // [api] 할일 불러오기
     @GetMapping
-    @Operation(summary = "할일 조회", description = "할일을 불러옵니다.")
+    @Operation(summary = "할일 조회", description = "할일을 불러옵니다.", security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<List<TodoSearchResponse>> getTodo(
             @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal
     ) {
@@ -49,7 +50,7 @@ public class TodoController {
 
     // [api] 할일 삭제하기
     @DeleteMapping("/{todoId}")
-    @Operation(summary = "할일 삭제", description = "할일을 삭제합니다.")
+    @Operation(summary = "할일 삭제", description = "할일을 삭제합니다.", security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<Boolean> deleteTodo(
             @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal,
             @PathVariable Long todoId
@@ -60,7 +61,7 @@ public class TodoController {
 
     // [api] 할일 수정하기
     @PutMapping("/{todoId}")
-    @Operation(summary = "할일 수정", description = "할일을 수정합니다.")
+    @Operation(summary = "할일 수정", description = "할일을 수정합니다.", security = {@SecurityRequirement(name = "JWT")})
     public ResponseEntity<Boolean> updateTodo(
             @RequestBody TodoUpdateRequest tur,
             @AuthenticationPrincipal CustomMemberPrincipal customMemberPrincipal,
